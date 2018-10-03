@@ -22,6 +22,8 @@ from streamlink.plugin.plugin import HIGH_PRIORITY, NO_PRIORITY
 from streamlink.stream import HDSStream, HLSStream, HTTPStream, DASHStream
 from streamlink.utils import update_scheme
 
+GENERIC_VERSION = '2018-10-03'
+
 log = logging.getLogger(__name__)
 
 obfuscatorhtml_chunk_re = re.compile(r'''["'](?P<chunk>[A-z0-9+/=]+)["']''')
@@ -790,7 +792,7 @@ class Generic(Plugin):
         self.settings_url()
 
         if self._run <= 1:
-            log.info('For support visit https://github.com/back-to/generic')
+            log.info('Version {0} - https://github.com/back-to/generic'.format(GENERIC_VERSION))
             log.debug('User-Agent: {0}'.format(self.session.http.headers['User-Agent']))
 
         new_url = False
