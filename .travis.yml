@@ -1,0 +1,21 @@
+language: python
+
+matrix:
+  include:
+  - python: '2.7'
+  - python: '3.4'
+  - python: '3.5'
+  - python: '3.6'
+  - python: '3.7'
+    dist: xenial
+    sudo: true
+
+before_install:
+  - pip install --upgrade pip setuptools
+  - pip install -r requirements-dev.txt
+  # only Tested with this streamlink dev version
+  - pip install -U git+https://github.com/streamlink/streamlink.git@6a2d263bbecd6f5bd0ee0bf546f67404876a6d01
+
+script:
+  - pytest --cov=plugins
+  - flake8 plugins/
