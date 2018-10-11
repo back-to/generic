@@ -38,6 +38,11 @@ unpack_unescape_re = re.compile(r"""
     ["']((?=[^<>"']*%\w{2})[^<>"']+)["']
     \)\);?[^<]*</script>""", re.VERBOSE)
 
+unpack_source_url_re_1 = re.compile(r'''(?x)source:\s*(?P<replace>window\.atob\(
+    (?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\)),\s*
+    mimeType:\s*["']application/vnd\.apple\.mpegurl["']
+''')
+
 
 class UnpackingError(Exception):
     """Badly packed source or general error."""
@@ -216,11 +221,27 @@ def unpack_unescape(text):
     return text
 
 
+def unpack_source_url(text):
+    while True:
+        m1 = unpack_source_url_re_1.search(text)
+        if m1:
+            try:
+                atob = base64.b64decode(m1.group("atob")).decode("utf-8")
+                atob = "{q}{atob}{q}".format(q=m1.group("q"), atob=atob)
+                text = text.replace(m1.group("replace"), atob)
+            except Exception:
+                pass
+        else:
+            break
+    return text
+
+
 def unpack(text):
     """ unpack html source code """
     text = unpack_packer(text)
     text = unpack_obfuscatorhtml(text)
     text = unpack_unescape(text)
+    text = unpack_source_url(text)
     return text
 
 
