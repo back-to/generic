@@ -737,6 +737,26 @@ class TestPluginResolve(unittest.TestCase):
                 "group": "resolution",
                 "result": "1080p"
             },
+            {
+                "data": "https://example.com/videos/1080p.mp4",
+                "group": "resolution",
+                "result": "1080p"
+            },
+            {
+                "data": "https://example.com/videos/1080.mp4",
+                "group": "bitrate",
+                "result": "1080"
+            },
+            {
+                "data": "http://example.com/video.5500k.mp4",
+                "group": "bitrate",
+                "result": "5500",
+            },
+            {
+                "data": "http://example.com/audio-4000.mp3",
+                "group": "bitrate",
+                "result": "4000",
+            },
         ]
         for test_dict in regex_test_list:
             m = self.res_plugin._httpstream_bitrate_re.search(test_dict["data"])

@@ -304,14 +304,17 @@ class Generic(Plugin):
     ''')
     # mp3 and mp4 files
     _httpstream_bitrate_re = re.compile(r'''(?x)
-        (?:_|\.)
+        (?:_|\.|/|-)
         (?:
-            (?P<bitrate>\d{1,4})
+            (?P<bitrate>\d{1,4})(?:k)?
             |
             (?P<resolution>\d{1,4}p)
         )
         \.mp(?:3|4)
     ''')
+    _httpstream_common_resolution_list = [
+        '2160', '1440', '1080', '720', '576', '480', '360', '240',
+    ]
     # javascript redirection
     _window_location_re = re.compile(r'''(?sx)
         <script[^<]+window\.location\.href\s?=\s?["']
@@ -714,7 +717,10 @@ class Generic(Plugin):
                         bitrate = m.group('bitrate')
                         resolution = m.group('resolution')
                         if bitrate:
-                            name = '{0}k'.format(m.group('bitrate'))
+                            if bitrate in self._httpstream_common_resolution_list:
+                                name = '{0}p'.format(m.group('bitrate'))
+                            else:
+                                name = '{0}k'.format(m.group('bitrate'))
                         elif resolution:
                             name = resolution
                     yield name, HTTPStream(self.session, url)
