@@ -10,7 +10,7 @@ import base64
 import logging
 import re
 
-from streamlink.compat import unquote, urljoin, urlparse
+from streamlink.compat import unquote, urljoin, urlparse, parse_qsl
 from streamlink.exceptions import (
     FatalPluginError,
     NoPluginError,
@@ -630,6 +630,15 @@ class Generic(Plugin):
             elif (self.compare_url_path(parse_new_url, blacklist_path_same, path_status='==') is True):
                 # Removes blacklisted same paths from a domain
                 REMOVE = 'BL-path-same'
+            elif parse_new_url.netloc == 'cdn.embedly.com' and parse_new_url.path == '/widgets/media.html':
+                # do not use the direct URL for 'cdn.embedly.com', search the query for a new URL
+                params = dict(parse_qsl(parse_new_url.query))
+                embedly_new_url = params.get('url') or params.get('src')
+                if embedly_new_url:
+                    new_list += [embedly_new_url]
+                else:
+                    log.error('Missing params URL or SRC for {0}'.format(new_url))
+                continue
             else:
                 # valid URL
                 new_list += [new_url]
