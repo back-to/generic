@@ -818,7 +818,7 @@ class Generic(Plugin):
             _title_re = re.compile(r'<title>(?P<title>[^<>]+)</title>')
             m = _title_re.search(self.html_text)
             if m:
-                self.title = m.group('title')
+                self.title = re.sub(r'[\s]+', ' ', m.group('title'))
             if self.title is None:
                 # fallback if there is no <title>
                 self.title = self.url
