@@ -624,7 +624,7 @@ class Generic(Plugin):
                 # Removes blacklisted file paths
                 # --generic-blacklist-filepath
                 REMOVE = 'BL-filepath'
-            elif (self._ads_path_re.match(parse_new_url.path)):
+            elif (self._ads_path_re.match(parse_new_url.path) or parse_new_url.netloc.startswith(('ads.'))):
                 # Removes obviously AD URL
                 REMOVE = 'ADS'
             elif (self.compare_url_path(parse_new_url, blacklist_path_same, path_status='==') is True):
