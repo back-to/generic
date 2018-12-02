@@ -656,8 +656,9 @@ class Generic(Plugin):
         match = self._window_location_re.search(self.html_text)
         if match:
             temp_url = urljoin(self.url, match.group('url'))
-            log.debug('Found window_location: {0}'.format(temp_url))
-            return temp_url
+            if temp_url not in GenericCache.cache_url_list:
+                log.debug('Found window_location: {0}'.format(temp_url))
+                return temp_url
 
         log.trace('No window_location')
         return False
