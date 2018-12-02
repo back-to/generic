@@ -22,7 +22,7 @@ from streamlink.plugin.plugin import HIGH_PRIORITY, NO_PRIORITY
 from streamlink.stream import HDSStream, HLSStream, HTTPStream, DASHStream
 from streamlink.utils import update_scheme
 
-GENERIC_VERSION = '2018-10-12'
+GENERIC_VERSION = '2018-12-02'
 
 log = logging.getLogger(__name__)
 
