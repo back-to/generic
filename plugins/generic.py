@@ -22,6 +22,12 @@ from streamlink.plugin.plugin import HIGH_PRIORITY, NO_PRIORITY
 from streamlink.stream import HDSStream, HLSStream, HTTPStream, DASHStream
 from streamlink.utils import update_scheme
 
+try:
+    import youtube_dl
+    HAS_YTDL = True
+except ImportError:
+    HAS_YTDL = False
+
 GENERIC_VERSION = '2018-12-02'
 
 log = logging.getLogger(__name__)
@@ -445,6 +451,20 @@ class Generic(Plugin):
             where the main iframe always has the same path.
             '''
         ),
+        PluginArgument(
+            'ytdl-disable',
+            action='store_true',
+            help='''
+            Disable youtube-dl fallback.
+            '''
+        ),
+        PluginArgument(
+            'ytdl-only',
+            action='store_true',
+            help='''
+            Disable generic plugin and use only youtube-dl.
+            '''
+        ),
     )
 
     def __init__(self, url):
@@ -825,7 +845,62 @@ class Generic(Plugin):
                 self.title = self.url
         return self.title
 
+    def ytdl_fallback(self):
+        '''Basic support for m3u8 URLs with youtube-dl'''
+        log.debug('Fallback youtube-dl')
+
+        class YTDL_Logger(object):
+            def debug(self, msg):
+                log.debug(msg)
+
+            def warning(self, msg):
+                log.warning(msg)
+
+            def error(self, msg):
+                log.trace(msg)
+
+        ydl_opts = {
+            'call_home': False,
+            'forcejson': True,
+            'logger': YTDL_Logger(),
+            'no_color': True,
+            'noplaylist': True,
+            'no_warnings': True,
+            'verbose': False,
+            'quiet': True,
+        }
+
+        with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+            try:
+                info = ydl.extract_info(self.url, download=False)
+            except Exception:
+                return
+
+            if not info:
+                return
+
+        self.title = info['title']
+
+        streams = []
+        for stream in info['formats']:
+            if stream['protocol'] in ['m3u8', 'm3u8_native'] and stream['ext'] == 'mp4':
+                log.trace('{0!r}'.format(stream))
+                name = stream.get('height') or stream.get('width')
+                if name:
+                    name = '{0}p'.format(name)
+                    streams.append((name, HLSStream(self.session,
+                                                    stream['url'],
+                                                    headers=stream['http_headers'])))
+        return streams
+
     def _get_streams(self):
+        if HAS_YTDL and not self.get_option('ytdl-disable') and self.get_option('ytdl-only'):
+            ___streams = self.ytdl_fallback()
+            if ___streams and len(___streams) >= 1:
+                return (s for s in ___streams)
+            if self.get_option('ytdl-only'):
+                return
+
         self.settings_url()
 
         if self._run <= 1:
@@ -900,6 +975,11 @@ class Generic(Plugin):
                 del self.session.http.headers['Referer']
 
             return self.session.streams(new_url)
+
+        if HAS_YTDL and not self.get_option('ytdl-disable') and not self.get_option('ytdl-only'):
+            ___streams = self.ytdl_fallback()
+            if ___streams and len(___streams) >= 1:
+                return (s for s in ___streams)
 
         raise NoPluginError
 
