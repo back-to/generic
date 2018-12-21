@@ -384,6 +384,7 @@ class TestPluginResolve(unittest.TestCase):
             "/ads468x60.htm",
             "/ads468x60.html",
             "/static/ads.htm",
+            "/random/ads.htm",
             "/static/ads.html",
             "/static/ads/300x250_1217n.htm",
             "/static/ads/300x250_1217n.html"
@@ -393,7 +394,7 @@ class TestPluginResolve(unittest.TestCase):
             "/static/ads468x60.html",
         ]
         for test_url in regex_test_list:
-            m = self.res_plugin._ads_path_re.match(test_url)
+            m = self.res_plugin._ads_path_re.search(test_url)
             self.assertIsNotNone(m)
 
     def test_iframe_re(self):

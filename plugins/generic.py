@@ -328,10 +328,9 @@ class Generic(Plugin):
     ''')
     # obviously ad paths
     _ads_path_re = re.compile(r'''(?x)
-        (?:/(?:static|\d+))?
         /ads?/?(?:\w+)?
         (?:\d+x\d+)?
-        (?:_\w+)?\.(?:html?|php)
+        (?:_\w+)?\.(?:html?|php)$
     ''')
 
     # START - _make_url_list
@@ -350,6 +349,7 @@ class Generic(Plugin):
     # Not allowed at the end of the parsed url netloc
     blacklist_netloc = (
         '127.0.0.1',
+        'a.adtng.com',
         'about:blank',
         'abv.bg',
         'adfox.ru',
@@ -644,7 +644,7 @@ class Generic(Plugin):
                 # Removes blacklisted file paths
                 # --generic-blacklist-filepath
                 REMOVE = 'BL-filepath'
-            elif (self._ads_path_re.match(parse_new_url.path) or parse_new_url.netloc.startswith(('ads.'))):
+            elif (self._ads_path_re.search(parse_new_url.path) or parse_new_url.netloc.startswith(('ads.'))):
                 # Removes obviously AD URL
                 REMOVE = 'ADS'
             elif (self.compare_url_path(parse_new_url, blacklist_path_same, path_status='==') is True):
