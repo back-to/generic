@@ -876,7 +876,7 @@ class Generic(Plugin):
             except Exception:
                 return
 
-            if not info:
+            if not info or not info.get('formats'):
                 return
 
         self.title = info['title']
