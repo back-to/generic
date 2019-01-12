@@ -28,7 +28,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2018-12-21'
+GENERIC_VERSION = '2019-01-12'
 
 log = logging.getLogger(__name__)
 
@@ -836,10 +836,12 @@ class Generic(Plugin):
         if self.title is None:
             if not self.html_text:
                 self.html_text = self._res_text(self.url)
+            _og_title_re = re.compile(r'<meta\s*property="og:title"\s*content="(?P<title>[^<>]+)"\s*/?>')
             _title_re = re.compile(r'<title>(?P<title>[^<>]+)</title>')
-            m = _title_re.search(self.html_text)
+            m = _og_title_re.search(self.html_text) or _title_re.search(self.html_text)
             if m:
                 self.title = re.sub(r'[\s]+', ' ', m.group('title'))
+                self.title = re.sub(r'^\s*|\s*$', '', self.title)
             if self.title is None:
                 # fallback if there is no <title>
                 self.title = self.url

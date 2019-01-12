@@ -9,7 +9,7 @@ it is meant for advanced user.
 
 ## commands
 
-...
+All available commands can be found with `streamlink --help`
 
 
 ## FAQ

@@ -248,6 +248,7 @@ class TestPluginResolve(unittest.TestCase):
         Generic.bind(self.session, "test.generic")
         self.res_plugin = Generic("generic://https://example.com")
         self.res_plugin.html_text = ''
+        self.res_plugin.title = None
 
     def test_priority(self):
         test_data = [
@@ -799,3 +800,45 @@ class TestPluginResolve(unittest.TestCase):
             m = self.res_plugin._window_location_re.search(test_dict["data"])
             self.assertIsNotNone(m)
             self.assertEqual(test_dict["result"], m.group("url"))
+
+    def test_get_title(self):
+        test_list = [
+            # <title>
+            ('''<!DOCTYPE html>
+                <html><head>
+                <meta charset="UTF-8">
+                <title>Title 1</title>
+                <meta name="robots" content="index,follow" />
+                <link rel="stylesheet" href="css/style.css">
+                </head>''', 'Title 1'),
+            # og:title before <title>
+            ('''<html prefix="og: http://ogp.me/ns#"><head>
+            <title>The Title (1996)</title>
+            <meta property="og:title" content="Title 2" />
+            <meta property="og:type" content="video.movie" />
+            </head></html>''', 'Title 2'),
+            # url fallback if None
+            ('<html>None</html>', self.res_plugin.url),
+            # remove \s
+            ('''<!DOCTYPE html>
+                <html><head>
+                <meta charset="UTF-8">
+                <title>                        Title       4        </title>
+                <meta name="robots" content="index,follow" />
+                <link rel="stylesheet" href="css/style.css">
+                </head>''', 'Title 4'),
+            # remove \s and no />
+            ('''<html><head>
+            <title>The Title (1996)</title>
+            <meta property="og:title" content="          Title           5         ">
+            <meta property="og:type" content="video.movie" />
+            </head></html>''', 'Title 5'),
+        ]
+
+        for html_text, title in test_list:
+            self.res_plugin.html_text = html_text
+            self.res_plugin.title = None
+            self.res_plugin.get_title()
+
+            self.assertIsNotNone(self.res_plugin.title, title)
+            self.assertEqual(self.res_plugin.title, title, title)
