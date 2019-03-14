@@ -838,7 +838,7 @@ class Generic(Plugin):
             if not self.html_text:
                 self.html_text = self._res_text(self.url)
             _og_title_re = re.compile(r'<meta\s*property="og:title"\s*content="(?P<title>[^<>]+)"\s*/?>')
-            _title_re = re.compile(r'<title>(?P<title>[^<>]+)</title>')
+            _title_re = re.compile(r'<title[^<>]*>(?P<title>[^<>]+)</title>')
             m = _og_title_re.search(self.html_text) or _title_re.search(self.html_text)
             if m:
                 self.title = re.sub(r'[\s]+', ' ', m.group('title'))

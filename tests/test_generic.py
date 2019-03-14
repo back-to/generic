@@ -843,6 +843,14 @@ class TestPluginResolve(unittest.TestCase):
             <meta property="og:title" content="          Title           5         ">
             <meta property="og:type" content="video.movie" />
             </head></html>''', 'Title 5'),
+            # <title foo>
+            ('''<!DOCTYPE html>
+                <html><head>
+                <meta charset="UTF-8">
+                <title foo>Title 1</title>
+                <meta name="robots" content="index,follow" />
+                <link rel="stylesheet" href="css/style.css">
+                </head>''', 'Title 1'),
         ]
 
         for html_text, title in test_list:
