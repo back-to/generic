@@ -28,7 +28,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2019-01-12'
+GENERIC_VERSION = '2019-03-14'
 
 log = logging.getLogger(__name__)
 
@@ -540,8 +540,8 @@ class Generic(Plugin):
             new_url = 'https:' + new_url[10:]
         # creates a valid url from path only urls
         # and adds missing scheme for // urls
-        if stream_base and new_url[1] is not '/':
-            if new_url[0] is '/':
+        if stream_base and new_url[1] != '/':
+            if new_url[0] == '/':
                 new_url = new_url[1:]
             new_url = urljoin(stream_base, new_url)
         else:
