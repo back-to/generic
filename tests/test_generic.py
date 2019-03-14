@@ -759,11 +759,21 @@ class TestPluginResolve(unittest.TestCase):
                 "group": "bitrate",
                 "result": "4000",
             },
+            {
+                "data": "https://example.com/77/240p.h264.mp4?a=b",
+                "group": "resolution",
+                "result": "240p",
+            },
+            {
+                "data": "https://example.com/77/244p.h265.mp4?a=b",
+                "group": "resolution",
+                "result": "244p",
+            },
         ]
         for test_dict in regex_test_list:
             m = self.res_plugin._httpstream_bitrate_re.search(test_dict["data"])
-            self.assertIsNotNone(m)
-            self.assertEqual(test_dict["result"], m.group(test_dict["group"]))
+            self.assertIsNotNone(m, test_dict["data"])
+            self.assertEqual(test_dict["result"], m.group(test_dict["group"]), test_dict["data"])
 
         regex_test_list = [
             """http://example.com/video_555500.mp4""",

@@ -315,6 +315,7 @@ class Generic(Plugin):
             (?P<bitrate>\d{1,4})(?:k)?
             |
             (?P<resolution>\d{1,4}p)
+            (?:\.h26(?:4|5))?
         )
         \.mp(?:3|4)
     ''')
