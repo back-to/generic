@@ -333,6 +333,10 @@ class TestPluginResolve(unittest.TestCase):
                 "stream_base": "http://new.example.com/",
                 "result": "http://new.example.com/true7_base/123.html",
             },
+            {
+                "url": "https%3A%2F%2Fabc.streamlock.net%2Flive%2Fsmil%3Alive.smil%2Fplaylist.m3u8",
+                "result": "https://abc.streamlock.net/live/smil:live.smil/playlist.m3u8",
+            },
         ]
         for test_dict in test_list:
             new_url = self.res_plugin.repair_url(
@@ -660,6 +664,12 @@ class TestPluginResolve(unittest.TestCase):
                         </script>
                         """,
                 "result": "https://hls/stream/playlist.m3u8?foo=bar"
+            },
+            {
+                "data": """
+                    "sourceURL": "https%3A%2F%2Fabc.streamlock.net%2Flive%2Fsmil%3Alive.smil%2Fplaylist.m3u8"
+                    """,
+                "result": "https%3A%2F%2Fabc.streamlock.net%2Flive%2Fsmil%3Alive.smil%2Fplaylist.m3u8"
             },
         ]
         for test_dict in regex_test_list:

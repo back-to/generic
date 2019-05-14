@@ -538,6 +538,7 @@ class Generic(Plugin):
             new_url = 'http:' + new_url[9:]
         elif new_url.startswith('https&#58;//'):
             new_url = 'https:' + new_url[10:]
+        new_url = unquote(new_url)
         # creates a valid url from path only urls
         # and adds missing scheme for // urls
         if stream_base and new_url[1] != '/':
