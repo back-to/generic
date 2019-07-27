@@ -34,7 +34,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2019-05-14'
+GENERIC_VERSION = '2019-07-27'
 
 log = logging.getLogger(__name__)
 
