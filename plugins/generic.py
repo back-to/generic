@@ -10,7 +10,13 @@ import base64
 import logging
 import re
 
-from streamlink.compat import unquote, urljoin, urlparse, parse_qsl
+from streamlink.compat import (
+    html_unescape,
+    parse_qsl,
+    unquote,
+    urljoin,
+    urlparse,
+)
 from streamlink.exceptions import (
     FatalPluginError,
     NoPluginError,
@@ -844,6 +850,7 @@ class Generic(Plugin):
             if m:
                 self.title = re.sub(r'[\s]+', ' ', m.group('title'))
                 self.title = re.sub(r'^\s*|\s*$', '', self.title)
+                self.title = html_unescape(self.title)
             if self.title is None:
                 # fallback if there is no <title>
                 self.title = self.url

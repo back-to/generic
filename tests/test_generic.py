@@ -861,6 +861,8 @@ class TestPluginResolve(unittest.TestCase):
                 <meta name="robots" content="index,follow" />
                 <link rel="stylesheet" href="css/style.css">
                 </head>''', 'Title 1'),
+            # html_unescape
+            ('<title>Title &amp; 1</title>', 'Title & 1')
         ]
 
         for html_text, title in test_list:
