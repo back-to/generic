@@ -21,6 +21,7 @@ which will search for playlists and iframes on every Website.
 
 It also has some builtin Javascript decoder for common players.
 
+
 ### How can it be used?
 
 Download [generic.py][generic] and use one of the following methods.
@@ -28,13 +29,11 @@ Download [generic.py][generic] and use one of the following methods.
 - https://streamlink.github.io/cli.html#sideloading-plugins
 - https://streamlink.github.io/cli.html#cmdoption-plugin-dirs
 
-### Which streamlink version is required?
-
-At least [**0.14.2**][streamlink]
 
 ### Where do I submit issues?
 
 https://github.com/back-to/generic/issues
+
 
 ### Will there be other plugins in this repo?
 
