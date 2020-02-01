@@ -5,7 +5,6 @@
     source: https://github.com/back-to/generic
     issues: https://github.com/back-to/generic/issues
 """
-import argparse
 import base64
 import logging
 import re
@@ -26,7 +25,8 @@ from streamlink.plugin import Plugin, PluginArgument, PluginArguments
 from streamlink.plugin.api import useragents
 from streamlink.plugin.plugin import HIGH_PRIORITY, NO_PRIORITY
 from streamlink.stream import HDSStream, HLSStream, HTTPStream, DASHStream
-from streamlink.utils import update_scheme
+from streamlink.utils.args import comma_list, num
+from streamlink.utils.url import update_scheme
 
 try:
     import youtube_dl
@@ -264,35 +264,6 @@ def unpack(text):
     return text
 
 
-def comma_list(values):
-    return [val.strip() for val in values.split(',')]
-
-
-def num(type, min=None, max=None):
-    def func(value):
-        value = type(value)
-
-        if min is not None and not (value > min):
-            raise argparse.ArgumentTypeError(
-                '{0} value must be more than {1} but is {2}'.format(
-                    type.__name__, min, value
-                )
-            )
-
-        if max is not None and not (value <= max):
-            raise argparse.ArgumentTypeError(
-                '{0} value must be at most {1} but is {2}'.format(
-                    type.__name__, max, value
-                )
-            )
-
-        return value
-
-    func.__name__ = type.__name__
-
-    return func
-
-
 class GenericCache(object):
     '''GenericCache is useded as a temporary session cache
        - GenericCache.blacklist_path
@@ -359,6 +330,7 @@ class Generic(Plugin):
         '/chat',
         '/novideo.mp4',
         '/vidthumb.mp4',
+        '/ads-iframe-display.php',
     )
     # Not allowed at the end of the parsed url netloc
     blacklist_netloc = (
