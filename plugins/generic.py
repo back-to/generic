@@ -819,6 +819,10 @@ class Generic(Plugin):
             self.session.http.verify = False
             log.warning('SSL Verification disabled.')
 
+        # http://www.latina.pe/tvenvivo
+        if (o.netloc.endswith('latina.pe') and o.path.startswith('/tvenvivo')):
+            self.session.http.get(self.url)
+
     def get_title(self):
         if self.title is None:
             if not self.html_text:
