@@ -25,6 +25,7 @@ from streamlink.plugin import Plugin, PluginArgument, PluginArguments
 from streamlink.plugin.api import useragents
 from streamlink.plugin.plugin import HIGH_PRIORITY, NO_PRIORITY
 from streamlink.stream import HDSStream, HLSStream, HTTPStream, DASHStream
+from streamlink.stream.ffmpegmux import MuxedStream
 from streamlink.utils.args import comma_list, num
 from streamlink.utils.url import update_scheme
 
@@ -34,7 +35,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2020-02-01'
+GENERIC_VERSION = '2020-04-11'
 
 log = logging.getLogger(__name__)
 
@@ -342,6 +343,7 @@ class Generic(Plugin):
         'cbox.ws',
         'googletagmanager.com',
         'javascript:false',
+        'accounts.google.com',
     )
     # END - _make_url_list
 
@@ -790,26 +792,6 @@ class Generic(Plugin):
     def settings_url(self):
         o = urlparse(self.url)
 
-        # User-Agent
-        _android = []
-        _chrome = []
-        _ipad = []
-        _iphone = [
-            'bigo.tv',
-        ]
-
-        if self.session.http.headers['User-Agent'].startswith('python-requests'):
-            if o.netloc.endswith(tuple(_android)):
-                self.session.http.headers.update({'User-Agent': useragents.ANDROID})
-            elif o.netloc.endswith(tuple(_chrome)):
-                self.session.http.headers.update({'User-Agent': useragents.CHROME})
-            elif o.netloc.endswith(tuple(_ipad)):
-                self.session.http.headers.update({'User-Agent': useragents.IPAD})
-            elif o.netloc.endswith(tuple(_iphone)):
-                self.session.http.headers.update({'User-Agent': useragents.IPHONE_6})
-            else:
-                self.session.http.headers.update({'User-Agent': useragents.FIREFOX})
-
         # SSL Verification - http.verify
         http_verify = [
             '.cdn.bg',
@@ -885,6 +867,32 @@ class Generic(Plugin):
                     streams.append((name, HLSStream(self.session,
                                                     stream['url'],
                                                     headers=stream['http_headers'])))
+
+        if not streams:
+            if ('youtube.com' in self.url
+                    and info.get('requested_formats')
+                    and len(info.get('requested_formats')) == 2
+                    and MuxedStream.is_usable(self.session)):
+                audio_url = audio_format = video_url = video_format = video_name = None
+                for stream in info.get('requested_formats'):
+                    if not stream.get('height'):
+                        audio_url = stream.get('url')
+                        audio_format = stream.get('format_id')
+                    if stream.get('height'):
+                        video_url = stream.get('url')
+                        video_format = stream.get('format_id')
+                        video_name = '{0}p'.format(stream.get('height'))
+
+                log.debug('MuxedStream: v {video} a {audio} = {name}'.format(
+                    audio=audio_format,
+                    name=video_name,
+                    video=video_format,
+                ))
+                streams.append((video_name,
+                                MuxedStream(self.session,
+                                            HTTPStream(self.session, video_url, headers=stream['http_headers']),
+                                            HTTPStream(self.session, audio_url, headers=stream['http_headers']))
+                                ))
         return streams
 
     def _get_streams(self):
