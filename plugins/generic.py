@@ -6,6 +6,7 @@
     issues: https://github.com/back-to/generic/issues
 """
 import base64
+import codecs
 import logging
 import re
 
@@ -35,7 +36,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2020-04-11'
+GENERIC_VERSION = '2020-06-10'
 
 log = logging.getLogger(__name__)
 
@@ -57,6 +58,7 @@ unpack_source_url_re_1 = re.compile(r'''(?x)source:\s*(?P<replace>window\.atob\(
 ''')
 unpack_source_url_re_2 = re.compile(r'''(?x)var\s\w+url=(?P<replace>atob\(
     (?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\));''')
+unpack_u_m3u8_re = re.compile(r'(\\u0022[^\s,]+m3u8[^\s,]*\\u0022)')
 
 
 class UnpackingError(Exception):
@@ -255,6 +257,20 @@ def unpack_source_url(text, _unpack_source_url_re):
     return text
 
 
+def unpack_u_m3u8(text):
+    def _unicode_escape(s):
+        unicode_escape = codecs.getdecoder('unicode_escape')
+        return re.sub(r'\\u[0-9a-fA-F]{4}', lambda m: unicode_escape(m.group(0))[0], s)
+
+    while True:
+        m = unpack_u_m3u8_re.search(text)
+        if m:
+            text = text.replace(m.group(0), _unicode_escape(m.group(0)))
+        else:
+            break
+    return text
+
+
 def unpack(text):
     """ unpack html source code """
     text = unpack_packer(text)
@@ -262,6 +278,7 @@ def unpack(text):
     text = unpack_unescape(text)
     text = unpack_source_url(text, unpack_source_url_re_1)
     text = unpack_source_url(text, unpack_source_url_re_2)
+    text = unpack_u_m3u8(text)
     return text
 
 
