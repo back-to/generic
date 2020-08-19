@@ -535,6 +535,12 @@ class TestPluginResolve(unittest.TestCase):
                 """,
                 "result": ["https://player3/"]
             },
+            {
+                "data": """
+                <iframe src="https://player4/ ">
+                """,
+                "result": ["https://player4/"]
+            },
         ]
         for test_dict in test_list:
             result_url_list = self.res_plugin._iframe_re.findall(test_dict["data"])

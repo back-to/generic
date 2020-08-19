@@ -36,7 +36,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2020-06-10'
+GENERIC_VERSION = '2020-08-19'
 
 log = logging.getLogger(__name__)
 
@@ -298,7 +298,7 @@ class Generic(Plugin):
     _iframe_re = re.compile(r'''(?isx)
         <ifr(?:["']\s?\+\s?["'])?ame
         (?!\sname=["']g_iFrame).*?src=
-        ["'](?P<url>[^"'\s<>]+)["']
+        ["'](?P<url>[^"'\s<>]+)\s?["']
         [^<>]*?>
     ''')
     # playlists
