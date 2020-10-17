@@ -36,19 +36,6 @@ index.m3u8
 index.m3u8
 """
 
-text_f4m = """<?xml version="1.0" encoding="UTF-8"?>
-<manifest xmlns="http://ns.adobe.com/f4m/1.0">
-  <id>/files/smil/f4m/1.smil_0</id>
-  <streamType>recorded</streamType>
-  <duration>2308.160</duration>
-  <streamBaseTime>0.000</streamBaseTime>
-  <bootstrapInfo profile="named" id="bootstrap_123">AAAAi2Fic3QAAAAAAAAAAQAAAAPoAAAAAAAjOEAAAAAAAAAAAAAAAAAAAQAAABlhc3J0AAAAAAAAAAABAAAAAQAAAYABAAAARmFmcnQAAAAAAAAD6AAAAAADAAAAAQAAAAAAAAAAAAAXcAAAAYAAAAAAACMQkAAAJ7AAAAAAAAAAAAAAAAAAAAAAAA==</bootstrapInfo>
-  <media bitrate="3283" url="123" bootstrapInfoId="bootstrap_123">
-    <metadata>AgAKb25NZXRhRGF0YQgAAAAMAAhkdXJhdGlvbgBAoghR64UeuAAFd2lkdGgAQJQAAAAAAAAABmhlaWdodABAhoAAAAAAAAANdmlkZW9kYXRhcmF0ZQBAqOZxeomxVgAJZnJhbWVyYXRlAEA5AAAAAAAAAAx2aWRlb2NvZGVjaWQAQBwAAAAAAAAADWF1ZGlvZGF0YXJhdGUAQFgABXOU314AD2F1ZGlvc2FtcGxlcmF0ZQBA5YiAAAAAAAAPYXVkaW9zYW1wbGVzaXplAEAwAAAAAAAAAAZzdGVyZW8BAQAMYXVkaW9jb2RlY2lkAEAkAAAAAAAAAAhmaWxlc2l6ZQBBzDsi4YAAAAAACQ==</metadata>
-  </media>
-</manifest>
-"""
-
 text_with_playlist = """
 <html>source: "%s"
 <player src="http://mocked/playlist/manifest.m3pd">
@@ -84,14 +71,6 @@ data_stream = [
     {
         "test_name": "mp4_stream",
         "stream_type": "mp4",
-        "website_text": """
-        <iframe src="http://mocked/default/iframe" width="650">iframe</iframe>
-        """,
-    },
-    # hds
-    {
-        "test_name": "hds_stream",
-        "stream_type": "hds",
         "website_text": """
         <iframe src="http://mocked/default/iframe" width="650">iframe</iframe>
         """,
@@ -184,11 +163,6 @@ stream_data = {
         "url": "http://mocked/video_2000.mp4",
         "name": "2000k",
         "text": ""
-    },
-    "hds": {
-        "url": "http://mocked/playlist/manifest.f4m",
-        "name": "3283k",
-        "text": text_f4m
     },
 }
 
@@ -603,18 +577,6 @@ class TestPluginResolve(unittest.TestCase):
                         <player frameborder="0" src="local.m3u8?local">
                         """,
                 "result": "local.m3u8?local"
-            },
-            {
-                "data": """<player frameborder="0" src="http://local.f4m">""",
-                "result": "http://local.f4m"
-            },
-            {
-                "data": """<player frameborder="0" src="http://local.f4m?local">""",
-                "result": "http://local.f4m?local"
-            },
-            {
-                "data": """<player frameborder="0" src="//local.f4m?local">""",
-                "result": "//local.f4m?local"
             },
             {
                 "data": """<video src="http://local.mp3">""",

@@ -25,7 +25,7 @@ from streamlink.exceptions import (
 from streamlink.plugin import Plugin, PluginArgument, PluginArguments
 from streamlink.plugin.api import useragents
 from streamlink.plugin.plugin import HIGH_PRIORITY, NO_PRIORITY
-from streamlink.stream import HDSStream, HLSStream, HTTPStream, DASHStream
+from streamlink.stream import HLSStream, HTTPStream, DASHStream
 from streamlink.stream.ffmpegmux import MuxedStream
 from streamlink.utils.args import comma_list, num
 from streamlink.utils.url import update_scheme
@@ -36,7 +36,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2020-08-19'
+GENERIC_VERSION = '2020-10-17'
 
 log = logging.getLogger(__name__)
 
@@ -306,7 +306,7 @@ class Generic(Plugin):
         (?:["']|=|&quot;)(?P<url>
             (?<!title=["'])
             (?<!["']title["']:["'])
-                [^"'<>\s\;{}]+\.(?:m3u8|f4m|mp3|mp4|mpd)
+                [^"'<>\s\;{}]+\.(?:m3u8|mp3|mp4|mpd)
             (?:\?[^"'<>\s\\{}]+)?)/?
         (?:\\?["']|(?<!;)\s|>|\\&quot;)
     ''')
@@ -696,7 +696,6 @@ class Generic(Plugin):
         playlist_max = self.get_option('playlist_max') or 5
         count_playlist = {
             'dash': 0,
-            'hds': 0,
             'hls': 0,
             'http': 0,
         }
@@ -729,18 +728,6 @@ class Generic(Plugin):
                     count_playlist['hls'] += 1
                 except Exception as e:
                     log.error('Skip HLS with error {0}'.format(str(e)))
-            elif (parsed_url.path.endswith(('.f4m'))
-                    or parsed_url.query.endswith(('.f4m'))):
-                if count_playlist['hds'] >= playlist_max:
-                    log.debug('Skip - {0}'.format(url))
-                    continue
-                try:
-                    for s in HDSStream.parse_manifest(self.session, url).items():
-                        yield s
-                    log.debug('HDS URL - {0}'.format(url))
-                    count_playlist['hds'] += 1
-                except Exception as e:
-                    log.error('Skip HDS with error {0}'.format(str(e)))
             elif (parsed_url.path.endswith(('.mp3', '.mp4'))
                     or parsed_url.query.endswith(('.mp3', '.mp4'))):
                 if count_playlist['http'] >= playlist_max:
