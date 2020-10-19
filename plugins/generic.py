@@ -10,13 +10,9 @@ import codecs
 import logging
 import re
 
-from streamlink.compat import (
-    html_unescape,
-    parse_qsl,
-    unquote,
-    urljoin,
-    urlparse,
-)
+from html import unescape as html_unescape
+from urllib.parse import parse_qsl, unquote, urljoin, urlparse
+
 from streamlink.exceptions import (
     FatalPluginError,
     NoPluginError,
