@@ -4,16 +4,14 @@ import six
 import sys
 import unittest
 
+from urllib.parse import urlparse
+
 from streamlink import Streamlink
-from streamlink.compat import urlparse
 from streamlink.plugin.api import HTTPSession
 from streamlink.plugin.plugin import HIGH_PRIORITY
 from streamlink.plugin.plugin import NO_PRIORITY
 
-try:
-    from unittest.mock import MagicMock
-except ImportError:
-    from mock import MagicMock
+from unittest.mock import MagicMock
 
 sys.path.insert(0, os.path.abspath('..'))
 from plugins.generic import Generic  # noqa
