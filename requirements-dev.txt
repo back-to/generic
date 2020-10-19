@@ -3,4 +3,3 @@ flake8
 pytest
 pytest-cov
 requests_mock
-mock; python_version < '3.3'
