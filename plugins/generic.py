@@ -8,9 +8,11 @@
 import base64
 import codecs
 import logging
+import os.path
 import re
 
 from html import unescape as html_unescape
+from pathlib import Path
 from urllib.parse import parse_qsl, unquote, urljoin, urlparse
 
 from streamlink.exceptions import (
@@ -469,6 +471,15 @@ class Generic(Plugin):
             Disable generic plugin and use only youtube-dl.
             '''
         ),
+        PluginArgument(
+            'debug',
+            action='store_true',
+            help='''
+            Developer Command!
+
+            Saves unpacked HTML code of all opened URLs to the local hard drive for easier debugging.
+            '''
+        ),
     )
 
     def __init__(self, url):
@@ -920,6 +931,17 @@ class Generic(Plugin):
         self.html_text = self._res_text(self.url)
         # unpack common javascript codes
         self.html_text = unpack(self.html_text)
+
+        if self.get_option('debug'):
+            _valid_filepath = re.sub(r'(?u)[^-\w.]', '', str(self.url).strip().replace(' ', '_'))
+            _new_file = os.path.join(Path().absolute(),
+                                     f'{self._run}_{_valid_filepath}.html')
+            log.warning(f'NEW DEBUG FILE! {_new_file}')
+            try:
+                with open(_new_file, 'w+') as f:
+                    f.write(str(self.html_text))
+            except OSError:
+                pass
 
         # Playlist URL
         playlist_all = self._playlist_re.findall(self.html_text)
