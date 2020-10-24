@@ -54,6 +54,8 @@ unpack_source_url_re_1 = re.compile(r'''(?x)source:\s*(?P<replace>window\.atob\(
 ''')
 unpack_source_url_re_2 = re.compile(r'''(?x)var\s\w+url=(?P<replace>atob\(
     (?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\));''')
+unpack_source_url_re_3 = re.compile(r'''(?x)Clappr\.Player\({\s*
+    source:\s*(?P<replace>atob\((?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\))''')
 unpack_u_m3u8_re = re.compile(r'(\\u0022[^\s,]+m3u8[^\s,]*\\u0022)')
 
 
@@ -274,6 +276,7 @@ def unpack(text):
     text = unpack_unescape(text)
     text = unpack_source_url(text, unpack_source_url_re_1)
     text = unpack_source_url(text, unpack_source_url_re_2)
+    text = unpack_source_url(text, unpack_source_url_re_3)
     text = unpack_u_m3u8(text)
     return text
 

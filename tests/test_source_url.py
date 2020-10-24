@@ -7,6 +7,7 @@ from plugins.generic import (
     unpack_source_url,
     unpack_source_url_re_1,
     unpack_source_url_re_2,
+    unpack_source_url_re_3,
 ) # noqa
 
 
@@ -52,4 +53,13 @@ class TestPluginResolve(unittest.TestCase):
             """, unpack_source_url_re_2), """
             var xurl='INVALID unpack_source_url';
             player=new Clappr.Player
+            """)
+
+    def test_unpack_source_atob4(self):
+        self.assertEqual(unpack_source_url("""
+            var player = new Clappr.Player({
+            source: atob('aHR0cHM6Ly9leGFtcGxlLmNvbQ=='),
+            """, unpack_source_url_re_3), """
+            var player = new Clappr.Player({
+            source: 'https://example.com',
             """)
