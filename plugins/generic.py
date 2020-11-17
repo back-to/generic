@@ -34,7 +34,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2020-10-24'
+GENERIC_VERSION = '2020-11-17'
 
 log = logging.getLogger(__name__)
 
@@ -458,6 +458,17 @@ class Generic(Plugin):
             '''
         ),
         PluginArgument(
+            'ignore-same-url',
+            action='store_true',
+            help='''
+            Do not remove URLs from the valid list if they were already used.
+
+            Sometimes needed as a workaround for --player-external-http issues.
+
+            Be careful this might result in an infinity loop.
+            '''
+        ),
+        PluginArgument(
             'ytdl-disable',
             action='store_true',
             help='''
@@ -608,9 +619,7 @@ class Generic(Plugin):
             GenericCache.whitelist_path = whitelist_path
         # END
 
-        status_hls_session_reload = (
-            self.session.get_option('hls-session-reload-time')
-            or self.session.get_option('hls-session-reload-segment'))
+        allow_same_url = (self.get_option('ignore_same_url'))
 
         new_list = []
         for url in old_list:
@@ -620,7 +629,7 @@ class Generic(Plugin):
 
             # START
             REMOVE = False
-            if new_url in GenericCache.cache_url_list and status_hls_session_reload is None:
+            if new_url in GenericCache.cache_url_list and not allow_same_url:
                 # Removes an already used url
                 # ignored if --hls-session-reload is used
                 REMOVE = 'SAME-URL'
