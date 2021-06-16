@@ -581,8 +581,6 @@ class Generic(Plugin):
 
             # static list
             blacklist_path = [
-                ('bigo.tv', '/show.mp4'),
-                ('expressen.se', '/_livetvpreview/'),
                 ('facebook.com', '/connect'),
                 ('facebook.com', '/plugins'),
                 ('google.com', '/recaptcha/'),
@@ -722,7 +720,6 @@ class Generic(Plugin):
         o = urlparse(self.url)
         origin_tuple = (
             '.cloudfront.net',
-            '.metube.id',
         )
 
         for url in playlist_all:
@@ -811,22 +808,6 @@ class Generic(Plugin):
                 log.debug('Redirect: {0} - {1}'.format(resp.status_code, resp.url))
             log.debug('URL: {0}'.format(res.url))
         return res.text
-
-    def settings_url(self):
-        o = urlparse(self.url)
-
-        # SSL Verification - http.verify
-        http_verify = [
-            '.cdn.bg',
-            'sportal.bg',
-        ]
-        if (o.netloc.endswith(tuple(http_verify)) and self.session.http.verify):
-            self.session.http.verify = False
-            log.warning('SSL Verification disabled.')
-
-        # http://www.latina.pe/tvenvivo
-        if (o.netloc.endswith('latina.pe') and o.path.startswith('/tvenvivo')):
-            self.session.http.get(self.url)
 
     def get_title(self):
         if self.title is None:
@@ -931,14 +912,10 @@ class Generic(Plugin):
             if self.get_option('ytdl-only'):
                 return
 
-        self.settings_url()
-
         if self._run <= 1:
             log.info('Version {0} - https://github.com/back-to/generic'.format(GENERIC_VERSION))
-            log.debug('User-Agent: {0}'.format(self.session.http.headers['User-Agent']))
 
         new_url = False
-
         log.info('  {0}. URL={1}'.format(self._run, self.url))
 
         # GET website content
@@ -1014,7 +991,6 @@ class Generic(Plugin):
             # the Dailymotion Plugin does not work with this Referer
             if 'dailymotion.com' in new_url:
                 del self.session.http.headers['Referer']
-
             return self.session.streams(new_url)
 
         if HAS_YTDL and not self.get_option('ytdl-disable') and not self.get_option('ytdl-only'):
