@@ -898,6 +898,11 @@ class Generic(Plugin):
                     and MuxedStream.is_usable(self.session)):
                 audio_url = audio_format = video_url = video_format = video_name = None
                 for stream in info.get('requested_formats'):
+                    if stream.get('format_id') == '135':
+                        url = stream.get('manifest_url')
+                        if not url:
+                            return
+                        return DASHStream.parse_manifest(self.session, url).items()
                     if not stream.get('height'):
                         audio_url = stream.get('url')
                         audio_format = stream.get('format_id')
