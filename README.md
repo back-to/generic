@@ -19,8 +19,6 @@ All available commands can be found with `streamlink --help`
 It is a generic streamlink plugin,
 which will search for playlists and iframes on every Website.
 
-It also has some builtin Javascript decoder for common players.
-
 
 ### How can it be used?
 
@@ -35,13 +33,7 @@ Download [generic.py][generic] and use one of the following methods.
 https://github.com/back-to/generic/issues
 
 
-### Will there be other plugins in this repo?
-
-No, only `generic.py`.
-
-
   [generic]: https://raw.githubusercontent.com/back-to/generic/master/plugins/generic.py
-  [common_generic]: https://raw.githubusercontent.com/back-to/generic/master/plugins/common_generic.py
   [github-issues]: https://github.com/back-to/generic/issues
   [github]: https://github.com/back-to/generic
   [streamlink]: https://streamlink.github.io/install.html
