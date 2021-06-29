@@ -222,19 +222,6 @@ class TestPluginResolve(unittest.TestCase):
         self.res_plugin.html_text = ''
         self.res_plugin.title = None
 
-    def test_priority(self):
-        test_data = [
-            ("generic://https://example.com/index", HIGH_PRIORITY),
-            ("https://example.com/index.html", NO_PRIORITY),
-        ]
-        for url, status in test_data:
-            self.assertEqual(Generic.priority(url), status)
-
-    def test_can_handle_url(self):
-        # it should match everything
-        self.assertTrue(Generic.can_handle_url("generic://local.local"))
-        self.assertTrue(Generic.can_handle_url("local.local"))
-
     def test_compare_url_path(self):
         blacklist_path = [
             ('example.com', '/_livetvpreview/'),
