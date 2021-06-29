@@ -20,9 +20,9 @@ from streamlink.exceptions import (
     NoPluginError,
     NoStreamsError,
 )
-from streamlink.plugin import Plugin, PluginArgument, PluginArguments
+from streamlink.plugin import Plugin, PluginArgument, PluginArguments, pluginmatcher
 from streamlink.plugin.api import useragents
-from streamlink.plugin.plugin import HIGH_PRIORITY, NO_PRIORITY
+from streamlink.plugin.plugin import HIGH_PRIORITY
 from streamlink.stream import HLSStream, HTTPStream, DASHStream
 from streamlink.stream.ffmpegmux import MuxedStream
 from streamlink.utils.args import comma_list, num
@@ -34,7 +34,7 @@ try:
 except ImportError:
     HAS_YTDL = False
 
-GENERIC_VERSION = '2021-06-16'
+GENERIC_VERSION = '2021-06-29'
 
 log = logging.getLogger(__name__)
 
@@ -292,9 +292,9 @@ class GenericCache(object):
     pass
 
 
+@pluginmatcher(re.compile(r'((?:generic|resolve)://)(?P<url>.+)'), priority=HIGH_PRIORITY)
+@pluginmatcher(re.compile(r'(?P<url>.+)'), priority=1)
 class Generic(Plugin):
-    pattern_re = re.compile(r'((?:generic|resolve)://)?(?P<url>.+)')
-
     # iframes
     _iframe_re = re.compile(r'''(?isx)
         <ifr(?:["']\s?\+\s?["'])?ame
@@ -495,9 +495,7 @@ class Generic(Plugin):
 
     def __init__(self, url):
         super(Generic, self).__init__(url)
-        self.url = update_scheme(
-            'http://', self.pattern_re.match(self.url).group('url'))
-
+        self.url = update_scheme('http://', self.match.group('url'))
         self.html_text = ''
         self.title = None
 
@@ -515,21 +513,6 @@ class Generic(Plugin):
         # START - how often _get_streams already run
         self._run = len(GenericCache.cache_url_list)
         # END
-
-    @classmethod
-    def priority(cls, url):
-        m = cls.pattern_re.match(url)
-        if m:
-            prefix, url = cls.pattern_re.match(url).groups()
-            if prefix is not None:
-                return HIGH_PRIORITY
-        return NO_PRIORITY
-
-    @classmethod
-    def can_handle_url(cls, url):
-        m = cls.pattern_re.match(url)
-        if m:
-            return m.group('url') is not None
 
     def compare_url_path(self, parsed_url, check_list,
                          path_status='startswith'):
