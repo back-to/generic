@@ -29,10 +29,14 @@ from streamlink.utils.args import comma_list, num
 from streamlink.utils.url import update_scheme
 
 try:
-    import youtube_dl
+    import yt_dlp as youtube_dl
     HAS_YTDL = True
 except ImportError:
-    HAS_YTDL = False
+    try:
+        import youtube_dl
+        HAS_YTDL = True
+    except ImportError:
+        HAS_YTDL = False
 
 GENERIC_VERSION = '2021-06-29'
 
@@ -810,7 +814,7 @@ class Generic(Plugin):
 
     def ytdl_fallback(self):
         '''Basic support for m3u8 URLs with youtube-dl'''
-        log.debug('Fallback youtube-dl')
+        log.debug(f'Fallback {youtube_dl.__name__} {youtube_dl.version.__version__}')
 
         class YTDL_Logger(object):
             def debug(self, msg):
