@@ -38,7 +38,7 @@ except ImportError:
     except ImportError:
         HAS_YTDL = False
 
-GENERIC_VERSION = '2021-06-29'
+GENERIC_VERSION = '2021-09-01'
 
 log = logging.getLogger(__name__)
 
@@ -501,7 +501,6 @@ class Generic(Plugin):
         super(Generic, self).__init__(url)
         self.url = update_scheme('http://', self.match.group('url'))
         self.html_text = ''
-        self.title = None
 
         # START - cache every used url and set a referer
         if hasattr(GenericCache, 'cache_url_list'):
@@ -811,6 +810,11 @@ class Generic(Plugin):
                 # fallback if there is no <title>
                 self.title = self.url
         return self.title
+
+    def get_category(self):
+        from datetime import datetime
+        utc = datetime.utcnow().strftime('%Y_%m_%d_%Hh%Mm%Ss_UTC')
+        return utc
 
     def ytdl_fallback(self):
         '''Basic support for m3u8 URLs with youtube-dl'''
