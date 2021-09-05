@@ -811,11 +811,6 @@ class Generic(Plugin):
                 self.title = self.url
         return self.title
 
-    def get_category(self):
-        from datetime import datetime
-        utc = datetime.utcnow().strftime('%Y_%m_%d_%Hh%Mm%Ss_UTC')
-        return utc
-
     def ytdl_fallback(self):
         '''Basic support for m3u8 URLs with youtube-dl'''
         log.debug(f'Fallback {youtube_dl.__name__} {youtube_dl.version.__version__}')
