@@ -795,6 +795,15 @@ class Generic(Plugin):
             log.debug('URL: {0}'.format(res.url))
         return res.text
 
+    def get_author(self):
+        parsed = urlparse(self.url)
+        split_username = list(filter(None, parsed.path.split('/')))
+        if len(split_username) == 1:
+            return split_username[0]
+        elif parsed.fragment:
+            return parsed.fragment
+        return super().get_author()
+
     def get_title(self):
         if self.title is None:
             if not self.html_text:
