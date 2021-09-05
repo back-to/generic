@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     generic streamlink plugin
 
@@ -39,7 +38,7 @@ except ImportError:
     except ImportError:
         HAS_YTDL = False
 
-GENERIC_VERSION = '2021-09-01'
+GENERIC_VERSION = '2021-09-05'
 
 log = logging.getLogger(__name__)
 
