@@ -13,6 +13,7 @@ import re
 
 from html import unescape as html_unescape
 from pathlib import Path
+from typing import Pattern
 from urllib.parse import parse_qsl, unquote, urljoin, urlparse
 
 from streamlink.exceptions import (
@@ -198,7 +199,7 @@ class Unbaser(object):
         return ret
 
 
-def unpack_packer(text):
+def unpack_packer(text: str) -> str:
     """unpack p.a.c.k.e.r"""
     packer = Packer()
     packer_list = unpack_packer_re.findall(text)
@@ -213,7 +214,7 @@ def unpack_packer(text):
     return text
 
 
-def unpack_obfuscatorhtml(text):
+def unpack_obfuscatorhtml(text: str) -> str:
     """
     Unpacker for Obfuscator HTML https://github.com/BlueEyesHF/Obfuscator-HTML
     """
@@ -232,7 +233,7 @@ def unpack_obfuscatorhtml(text):
     return text
 
 
-def unpack_unescape(text):
+def unpack_unescape(text: str) -> str:
     while True:
         m = unpack_unescape_re.search(text)
         if m:
@@ -242,7 +243,7 @@ def unpack_unescape(text):
     return text
 
 
-def unpack_source_url(text, _unpack_source_url_re):
+def unpack_source_url(text: str, _unpack_source_url_re: Pattern) -> str:
     while True:
         m1 = _unpack_source_url_re.search(text)
         if m1:
@@ -261,8 +262,8 @@ def unpack_source_url(text, _unpack_source_url_re):
     return text
 
 
-def unpack_u_m3u8(text):
-    def _unicode_escape(s):
+def unpack_u_m3u8(text: str) -> str:
+    def _unicode_escape(s: str) -> str:
         unicode_escape = codecs.getdecoder('unicode_escape')
         return re.sub(r'\\u[0-9a-fA-F]{4}', lambda m: unicode_escape(m.group(0))[0], s)
 
@@ -275,7 +276,7 @@ def unpack_u_m3u8(text):
     return text
 
 
-def unpack(text):
+def unpack(text: str) -> str:
     """ unpack html source code """
     text = unpack_packer(text)
     text = unpack_obfuscatorhtml(text)
