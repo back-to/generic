@@ -38,7 +38,7 @@ except ImportError:
     except ImportError:
         HAS_YTDL = False
 
-GENERIC_VERSION = '2021-09-05'
+GENERIC_VERSION = '2021-11-12'
 
 log = logging.getLogger(__name__)
 
@@ -499,7 +499,7 @@ class Generic(Plugin):
 
     def __init__(self, url):
         super(Generic, self).__init__(url)
-        self.url = update_scheme('http://', self.match.group('url'))
+        self.url = update_scheme('http://', self.match.group('url'), force=False)
         self.html_text = ''
 
         # START - cache every used url and set a referer
@@ -535,7 +535,7 @@ class Generic(Plugin):
     def merge_path_list(self, static, user):
         for _path_url in user:
             if not _path_url.startswith(('http', '//')):
-                _path_url = update_scheme('http://', _path_url)
+                _path_url = update_scheme('http://', _path_url, force=False)
             _parsed_path_url = urlparse(_path_url)
             if _parsed_path_url.netloc and _parsed_path_url.path:
                 static += [(_parsed_path_url.netloc, _parsed_path_url.path)]
