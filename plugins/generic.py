@@ -20,7 +20,7 @@ from streamlink.exceptions import (
     NoPluginError,
     NoStreamsError,
 )
-from streamlink.plugin import Plugin, PluginArgument, PluginArguments, pluginmatcher
+from streamlink.plugin import Plugin, pluginargument, pluginmatcher
 from streamlink.plugin.api import useragents
 from streamlink.plugin.plugin import HIGH_PRIORITY
 from streamlink.stream import HLSStream, HTTPStream, DASHStream
@@ -38,7 +38,7 @@ except ImportError:
     except ImportError:
         HAS_YTDL = False
 
-GENERIC_VERSION = '2021-11-12'
+GENERIC_VERSION = "2022-09-02"
 
 log = logging.getLogger(__name__)
 
@@ -298,6 +298,125 @@ class GenericCache(object):
 
 @pluginmatcher(re.compile(r'((?:generic|resolve)://)(?P<url>.+)'), priority=HIGH_PRIORITY)
 @pluginmatcher(re.compile(r'(?P<url>.+)'), priority=1)
+@pluginargument(
+    "playlist-max",
+    default=5,
+    metavar="NUMBER",
+    type=num(int, min=0, max=25),
+    help="""
+    Number of how many playlist URLs of the same type
+    are allowed to be resolved with this plugin.
+
+    Default is 5"""
+)
+@pluginargument(
+    "playlist-referer",
+    metavar="URL",
+    help="""Set a custom referer URL for the playlist URLs.
+
+    This only affects playlist URLs of this plugin.
+
+    Default is the URL of the last website."""
+)
+@pluginargument(
+    "blacklist-netloc",
+    metavar="NETLOC",
+    type=comma_list,
+    help="""
+    Blacklist domains that should not be used,
+    by using a comma-separated list:
+
+        "example.com,localhost,google.com"
+
+    Useful for websites with a lot of iframes."""
+)
+@pluginargument(
+    "blacklist-path",
+    metavar="PATH",
+    type=comma_list,
+    help="""
+    Blacklist the path of a domain that should not be used,
+    by using a comma-separated list:
+
+        "example.com/mypath,localhost/example,google.com/folder"
+
+    Useful for websites with different iframes of the same domain.
+    """
+)
+@pluginargument(
+    "blacklist-filepath",
+    metavar="FILEPATH",
+    type=comma_list,
+    help="""
+    Blacklist file names for iframes and playlists
+    by using a comma-separated list:
+
+        "index.html,ignore.m3u8,/ad/master.m3u8"
+
+    Sometimes there are invalid URLs in the result list,
+    this can be used to remove them.
+    """
+)
+@pluginargument(
+    "whitelist-netloc",
+    metavar="NETLOC",
+    type=comma_list,
+    help="""
+    Whitelist domains that should only be searched for iframes,
+    by using a comma-separated list:
+
+        "example.com,localhost,google.com"
+
+    Useful for websites with lots of iframes,
+    where the main iframe always has the same hosting domain.
+    """
+)
+@pluginargument(
+    "whitelist-path",
+    metavar="PATH",
+    type=comma_list,
+    help="""
+    Whitelist the path of a domain that should only be searched
+    for iframes, by using a comma-separated list:
+
+        "example.com/mypath,localhost/example,google.com/folder"
+
+    Useful for websites with different iframes of the same domain,
+    where the main iframe always has the same path.
+    """
+)
+@pluginargument(
+    "ignore-same-url",
+    action="store_true",
+    help="""
+    Do not remove URLs from the valid list if they were already used.
+
+    Sometimes needed as a workaround for --player-external-http issues.
+
+    Be careful this might result in an infinity loop.
+    """
+)
+@pluginargument(
+    "ytdl-disable",
+    action="store_true",
+    help="Disable youtube-dl fallback."
+)
+@pluginargument(
+    "ytdl-only",
+    action="store_true",
+    help="""
+    Disable generic plugin and use only youtube-dl.
+    """
+)
+@pluginargument(
+    "debug",
+    action="store_true",
+    help="""
+    Developer Command!
+
+    Saves unpacked HTML code of all opened URLs to the local hard drive for easier debugging.
+    """
+)
 class Generic(Plugin):
     # iframes
     _iframe_re = re.compile(r'''(?isx)
@@ -369,136 +488,8 @@ class Generic(Plugin):
     )
     # END - _make_url_list
 
-    arguments = PluginArguments(
-        PluginArgument(
-            'playlist-max',
-            metavar='NUMBER',
-            type=num(int, min=0, max=25),
-            default=5,
-            help='''
-            Number of how many playlist URLs of the same type
-            are allowed to be resolved with this plugin.
-
-            Default is 5
-            '''
-        ),
-        PluginArgument(
-            'playlist-referer',
-            metavar='URL',
-            help='''
-            Set a custom referer URL for the playlist URLs.
-
-            This only affects playlist URLs of this plugin.
-
-            Default is the URL of the last website.
-            '''
-        ),
-        PluginArgument(
-            'blacklist-netloc',
-            metavar='NETLOC',
-            type=comma_list,
-            help='''
-            Blacklist domains that should not be used,
-            by using a comma-separated list:
-
-              'example.com,localhost,google.com'
-
-            Useful for websites with a lot of iframes.
-            '''
-        ),
-        PluginArgument(
-            'blacklist-path',
-            metavar='PATH',
-            type=comma_list,
-            help='''
-            Blacklist the path of a domain that should not be used,
-            by using a comma-separated list:
-
-              'example.com/mypath,localhost/example,google.com/folder'
-
-            Useful for websites with different iframes of the same domain.
-            '''
-        ),
-        PluginArgument(
-            'blacklist-filepath',
-            metavar='FILEPATH',
-            type=comma_list,
-            help='''
-            Blacklist file names for iframes and playlists
-            by using a comma-separated list:
-
-              'index.html,ignore.m3u8,/ad/master.m3u8'
-
-            Sometimes there are invalid URLs in the result list,
-            this can be used to remove them.
-            '''
-        ),
-        PluginArgument(
-            'whitelist-netloc',
-            metavar='NETLOC',
-            type=comma_list,
-            help='''
-            Whitelist domains that should only be searched for iframes,
-            by using a comma-separated list:
-
-              'example.com,localhost,google.com'
-
-            Useful for websites with lots of iframes,
-            where the main iframe always has the same hosting domain.
-            '''
-        ),
-        PluginArgument(
-            'whitelist-path',
-            metavar='PATH',
-            type=comma_list,
-            help='''
-            Whitelist the path of a domain that should only be searched
-            for iframes, by using a comma-separated list:
-
-              'example.com/mypath,localhost/example,google.com/folder'
-
-            Useful for websites with different iframes of the same domain,
-            where the main iframe always has the same path.
-            '''
-        ),
-        PluginArgument(
-            'ignore-same-url',
-            action='store_true',
-            help='''
-            Do not remove URLs from the valid list if they were already used.
-
-            Sometimes needed as a workaround for --player-external-http issues.
-
-            Be careful this might result in an infinity loop.
-            '''
-        ),
-        PluginArgument(
-            'ytdl-disable',
-            action='store_true',
-            help='''
-            Disable youtube-dl fallback.
-            '''
-        ),
-        PluginArgument(
-            'ytdl-only',
-            action='store_true',
-            help='''
-            Disable generic plugin and use only youtube-dl.
-            '''
-        ),
-        PluginArgument(
-            'debug',
-            action='store_true',
-            help='''
-            Developer Command!
-
-            Saves unpacked HTML code of all opened URLs to the local hard drive for easier debugging.
-            '''
-        ),
-    )
-
-    def __init__(self, url):
-        super(Generic, self).__init__(url)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.url = update_scheme('http://', self.match.group('url'), force=False)
         self.html_text = ''
 
