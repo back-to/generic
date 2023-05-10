@@ -302,7 +302,7 @@ class GenericCache(object):
     "playlist-max",
     default=5,
     metavar="NUMBER",
-    type=num(int, min=0, max=25),
+    type=num(int, ge=0, le=25),
     help="""
     Number of how many playlist URLs of the same type
     are allowed to be resolved with this plugin.
