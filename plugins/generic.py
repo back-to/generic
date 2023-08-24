@@ -38,7 +38,7 @@ except ImportError:
     except ImportError:
         HAS_YTDL = False
 
-GENERIC_VERSION = "2022-09-02"
+GENERIC_VERSION = "2023-08-24"
 
 log = logging.getLogger(__name__)
 
@@ -60,8 +60,8 @@ unpack_source_url_re_1 = re.compile(r'''(?x)source:\s*(?P<replace>window\.atob\(
 ''')
 unpack_source_url_re_2 = re.compile(r'''(?x)var\s\w+url=(?P<replace>atob\(
     (?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\));''')
-unpack_source_url_re_3 = re.compile(r'''(?x)Clappr\.Player\({\s*
-    source:\s*(?P<replace>atob\((?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\))''')
+unpack_source_url_re_3 = re.compile(r'''(?x)Clappr\.Player\(\s*{\s*
+    source:\s*(?P<replace>(?:window\.)atob\((?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\))''')
 unpack_u_m3u8_re = re.compile(r'(\\u0022[^\s,]+m3u8[^\s,]*\\u0022)')
 
 
@@ -561,11 +561,6 @@ class Generic(Plugin):
                 ('facebook.com', '/connect'),
                 ('facebook.com', '/plugins'),
                 ('google.com', '/recaptcha/'),
-                ('haber7.com', '/radyohome/station-widget/'),
-                ('static.tvr.by', '/upload/video/atn/promo'),
-                ('twitter.com', '/widgets'),
-                ('vesti.ru', '/native_widget.html'),
-                ('www.blogger.com', '/static'),
                 ('youtube.com', '/['),
             ]
 
