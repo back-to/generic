@@ -298,125 +298,7 @@ class GenericCache(object):
 
 @pluginmatcher(re.compile(r'((?:generic|resolve)://)(?P<url>.+)'), priority=HIGH_PRIORITY)
 @pluginmatcher(re.compile(r'(?P<url>.+)'), priority=1)
-@pluginargument(
-    "playlist-max",
-    default=5,
-    metavar="NUMBER",
-    type=num(int, ge=0, le=25),
-    help="""
-    Number of how many playlist URLs of the same type
-    are allowed to be resolved with this plugin.
 
-    Default is 5"""
-)
-@pluginargument(
-    "playlist-referer",
-    metavar="URL",
-    help="""Set a custom referer URL for the playlist URLs.
-
-    This only affects playlist URLs of this plugin.
-
-    Default is the URL of the last website."""
-)
-@pluginargument(
-    "blacklist-netloc",
-    metavar="NETLOC",
-    type=comma_list,
-    help="""
-    Blacklist domains that should not be used,
-    by using a comma-separated list:
-
-        "example.com,localhost,google.com"
-
-    Useful for websites with a lot of iframes."""
-)
-@pluginargument(
-    "blacklist-path",
-    metavar="PATH",
-    type=comma_list,
-    help="""
-    Blacklist the path of a domain that should not be used,
-    by using a comma-separated list:
-
-        "example.com/mypath,localhost/example,google.com/folder"
-
-    Useful for websites with different iframes of the same domain.
-    """
-)
-@pluginargument(
-    "blacklist-filepath",
-    metavar="FILEPATH",
-    type=comma_list,
-    help="""
-    Blacklist file names for iframes and playlists
-    by using a comma-separated list:
-
-        "index.html,ignore.m3u8,/ad/master.m3u8"
-
-    Sometimes there are invalid URLs in the result list,
-    this can be used to remove them.
-    """
-)
-@pluginargument(
-    "whitelist-netloc",
-    metavar="NETLOC",
-    type=comma_list,
-    help="""
-    Whitelist domains that should only be searched for iframes,
-    by using a comma-separated list:
-
-        "example.com,localhost,google.com"
-
-    Useful for websites with lots of iframes,
-    where the main iframe always has the same hosting domain.
-    """
-)
-@pluginargument(
-    "whitelist-path",
-    metavar="PATH",
-    type=comma_list,
-    help="""
-    Whitelist the path of a domain that should only be searched
-    for iframes, by using a comma-separated list:
-
-        "example.com/mypath,localhost/example,google.com/folder"
-
-    Useful for websites with different iframes of the same domain,
-    where the main iframe always has the same path.
-    """
-)
-@pluginargument(
-    "ignore-same-url",
-    action="store_true",
-    help="""
-    Do not remove URLs from the valid list if they were already used.
-
-    Sometimes needed as a workaround for --player-external-http issues.
-
-    Be careful this might result in an infinity loop.
-    """
-)
-@pluginargument(
-    "ytdl-disable",
-    action="store_true",
-    help="Disable youtube-dl fallback."
-)
-@pluginargument(
-    "ytdl-only",
-    action="store_true",
-    help="""
-    Disable generic plugin and use only youtube-dl.
-    """
-)
-@pluginargument(
-    "debug",
-    action="store_true",
-    help="""
-    Developer Command!
-
-    Saves unpacked HTML code of all opened URLs to the local hard drive for easier debugging.
-    """
-)
 class Generic(Plugin):
     # iframes
     _iframe_re = re.compile(r'''(?isx)
@@ -822,11 +704,13 @@ class Generic(Plugin):
 
         ydl_opts = {
             'call_home': False,
+            #'live_from_start': True,
             'forcejson': True,
             'logger': YTDL_Logger(),
             'no_color': True,
             'noplaylist': True,
             'no_warnings': True,
+            'noprogress': True,
             'verbose': False,
             'quiet': True,
         }
@@ -834,59 +718,80 @@ class Generic(Plugin):
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
             try:
                 info = ydl.extract_info(self.url, download=False)
-            except Exception:
-                return
+            except Exception as e:
+                log.error(f"Error extracting info: {e}")
+                return []
 
-            if not info or not info.get('formats'):
-                return
+            if not info:
+                return []
 
-        self.title = info['title']
+            self.title = info.get('title', 'Unknown Title')
+            streams_list = []
+            resolution_list_v_a = []
+            resolution_list_v_only = []
+            audio_streams = {fmt['format_id']: fmt for fmt in info.get('formats', []) if fmt.get('acodec', 'none') != 'none'}
 
-        streams = []
-        for stream in info['formats']:
-            if stream['protocol'] in ['m3u8', 'm3u8_native'] and stream['ext'] == 'mp4':
-                log.trace('{0!r}'.format(stream))
-                name = stream.get('height') or stream.get('width')
-                if name:
-                    name = '{0}p'.format(name)
-                    streams.append((name, HLSStream(self.session,
-                                                    stream['url'],
-                                                    headers=stream['http_headers'])))
+            if info.get('formats', None):
+                for fmt in info.get('formats', []):
 
-        if not streams:
-            if ('youtube.com' in self.url
-                    and info.get('requested_formats')
-                    and len(info.get('requested_formats')) == 2
-                    and MuxedStream.is_usable(self.session)):
-                audio_url = audio_format = video_url = video_format = video_name = None
-                for stream in info.get('requested_formats'):
-                    if stream.get('format_id') == '135':
-                        url = stream.get('manifest_url')
-                        if not url:
-                            return
-                        return DASHStream.parse_manifest(self.session, url).items()
-                    if not stream.get('height'):
-                        audio_url = stream.get('url')
-                        audio_format = stream.get('format_id')
-                    if stream.get('height'):
-                        video_url = stream.get('url')
-                        video_format = stream.get('format_id')
-                        video_name = '{0}p'.format(stream.get('height'))
+                    if 'vcodec' in fmt and fmt.get('vcodec', 'none') != 'none' and 'acodec' in fmt and fmt.get('acodec', 'none') != 'none':
+                        resolution_name = f"{fmt.get('height', 'unknown')}p"
+                        resolution_list_v_a.append(resolution_name)
+                        stream = HLSStream(self.session, fmt['url'], headers=fmt.get('http_headers')) if fmt.get('protocol') in ['m3u8', 'm3u8_native'] \
+                            else HTTPStream(self.session, fmt['url'], headers=fmt.get('http_headers'))
+                        streams_list.append((resolution_name, stream))
+                    
+                    if 'vcodec' in fmt and fmt.get('vcodec', 'none') != 'none' and (('acodec' not in fmt) or (fmt.get('acodec', 'none') == 'none')):
+                        resolution_name = f"{fmt.get('height', 'unknown')}p"
+                        if resolution_name not in resolution_list_v_a:
+                            resolution_list_v_only.append(resolution_name)
+                            stream = HLSStream(self.session, fmt['url'], headers=fmt.get('http_headers')) if fmt.get('protocol') in ['m3u8', 'm3u8_native'] \
+                                else HTTPStream(self.session, fmt['url'], headers=fmt.get('http_headers'))
+                            audio_fmt = next((audio_streams.get(fid) for fid in ['140', '139', '599', '234', '233'] if fid in audio_streams), None)
+                            if audio_fmt:
+                                audio_url = audio_fmt['url']
+                                audio_stream = HTTPStream(self.session, audio_url, headers=audio_fmt.get('http_headers')) if audio_fmt.get('protocol') not in ['m3u8', 'm3u8_native'] \
+                                        else HLSStream(self.session, audio_url, headers=audio_fmt.get('http_headers'))
+                                muxed_stream = MuxedStream(self.session,
+                                                    stream,
+                                                    audio_stream)
+                                streams_list.append((resolution_name, muxed_stream))
 
-                log.debug('MuxedStream: v {video} a {audio} = {name}'.format(
-                    audio=audio_format,
-                    name=video_name,
-                    video=video_format,
-                ))
-                streams.append((video_name,
-                                MuxedStream(self.session,
-                                            HTTPStream(self.session, video_url, headers=stream['http_headers']),
-                                            HTTPStream(self.session, audio_url, headers=stream['http_headers']))
-                                ))
-        return streams
+                    if 'acodec' in fmt and fmt.get('acodec', 'none') != 'none' and ('vcodec' not in fmt or fmt.get('vcodec', 'none') == 'none'):
+                        audio_format = fmt.get('ext', 'unknown')
+                        audio_name = f"audio_{audio_format}"
+                        audio = HTTPStream(self.session, fmt['url'], headers=fmt.get('http_headers')) if fmt.get('protocol') not in ['m3u8', 'm3u8_native'] \
+                           else HLSStream(self.session, audio_url, headers=audio_fmt.get('http_headers'))
+                        streams_list.append((audio_name, audio))
+
+            if not info.get('formats', None) and info.get('requested_formats', None):
+                for fmt in info.get('requested_formats', []):
+
+                    if 'manifest_url' in fmt and fmt['manifest_url'].endswith('.m3u8'):
+                        try:
+                            hls_streams = HLSStream.parse_variant_playlist(self.session, fmt['manifest_url']).items()
+                            for quality, hls_stream in hls_streams:
+                                log.debug(f"{hls_stream.to_manifest_url}")
+                                resolution_name_hls = f"{quality}"
+                                streams_list.append((resolution_name_hls, hls_stream))
+                        except Exception as e:
+                            log.error(f"Error parsing HLS playlist: {e}")
+
+                    elif 'manifest_url' in fmt and fmt['manifest_url'].endswith('.mpd'):
+                        try:
+                            dash_streams = DASHStream.parse_manifest(self.session, fmt['manifest_url']).items()
+                            for quality, dash_stream in dash_streams:
+                                resolution_name_dash = f"{quality}p"
+                                streams_list.append((resolution_name_dash, dash_stream))
+                        except Exception as e:
+                            log.error(f"Error parsing DASH manifest: {e}")
+                            
+            log.debug(f"Saved streams: {streams_list}")
+
+            return streams_list
 
     def _get_streams(self):
-        if HAS_YTDL and not self.get_option('ytdl-disable') and self.get_option('ytdl-only'):
+        if HAS_YTDL:
             ___streams = self.ytdl_fallback()
             if ___streams and len(___streams) >= 1:
                 return (s for s in ___streams)
