@@ -701,6 +701,68 @@ class Generic(Plugin):
 
             def error(self, msg):
                 log.trace(msg)
+        # Função para criar ou atualizar o arquivo de cookies no formato Netscape
+        def create_or_update_youtube_cookie_file(cookie_file_path, cookies_data):
+            # Define uma data de expiração muito distante no futuro (100 anos)
+            far_future_expiration = str(int(time.time()) + 36500 * 24 * 60 * 60)
+            
+            if os.path.isfile(cookie_file_path):
+                # Se o arquivo já existir, atualiza a expiração dos cookies
+                with open(cookie_file_path, 'r') as f:
+                    cookies = f.readlines()
+
+                updated_cookies = []
+                for cookie in cookies:
+                    if not cookie.startswith("#") and len(cookie.split("\t")) >= 7:
+                        parts = cookie.strip().split('\t')
+                        if len(parts) == 7:
+                            parts[4] = far_future_expiration  # Atualiza o campo de expiração
+                        updated_cookies.append('\t'.join(parts))
+                    else:
+                        updated_cookies.append(cookie)  # Mantém as linhas de comentário ou inválidas
+
+                with open(cookie_file_path, 'w') as f:
+                    f.write('\n'.join(updated_cookies) + '\n')
+                print(f"Arquivo de cookies atualizado em: {cookie_file_path}")
+            else:
+                # Se o arquivo não existir, cria um novo com os dados fornecidos
+                with open(cookie_file_path, 'w') as f:
+                    f.write("# Netscape HTTP Cookie File\n")
+                    f.write("# http://curl.haxx.se/rfc/cookie_spec.html\n")
+                    f.write("# This is a generated file!  Do not edit.\n\n")
+                    for cookie in cookies_data:
+                        parts = cookie.split('\t')
+                        if len(parts) == 7:
+                            parts[4] = far_future_expiration  # Define a expiração para 100 anos no futuro
+                            f.write('\t'.join(parts) + '\n')
+                print(f"Arquivo de cookies criado em: {cookie_file_path}")
+
+        # Dados do arquivo de cookies fornecido, filtrado para os essenciais
+        cookies_data = [
+            ".youtube.com\tTRUE\t/\tFALSE\t1759345514\tSID\tg.a000nQiPcE5kahPyVloAJy5GI68HMViFJVlYuQrA8TT5m_OnrtrbxEWA88RDTQ-Go6ARXS3f6gACgYKAW0SARASFQHGX2MiMxH2UzKOdO-OIvhuInff4RoVAUF8yKpBNT90Ae3NgatP9lBq7xof0076",
+            ".youtube.com\tTRUE\t/\tFALSE\t1759345514\tHSID\tAy6G7ptmQHogqcpEV",
+            ".youtube.com\tTRUE\t/\tTRUE\t1759345514\tSSID\tAdKKHf2GXNG1mjfJw",
+            ".youtube.com\tTRUE\t/\tFALSE\t1759345514\tAPISID\t-NkuEk23QGL5eyD_/AmgMFITqY6Vw8mijV",
+            ".youtube.com\tTRUE\t/\tTRUE\t1759345514\tSAPISID\tVcvECAPX4fdoxBtd/AEUAmQ2lD0WtSpdks",
+            ".youtube.com\tTRUE\t/\tTRUE\t1759345514\t__Secure-1PSID\tg.a000nQiPcE5kahPyVloAJy5GI68HMViFJVlYuQrA8TT5m_Onrtrb_jDNUYYLInlwCnl9Gl9wagACgYKAQ8SARASFQHGX2MiP2CzwvyMpOh572oRr9SDpRoVAUF8yKqEugA_mE02MHGDoYWGJzy50076",
+            ".youtube.com\tTRUE\t/\tTRUE\t1759345514\t__Secure-3PSID\tg.a000nQiPcE5kahPyVloAJy5GI68HMViFJVlYuQrA8TT5m_Onrtrb-lkxenxZTgFPRS1N6Kt5hwACgYKAegSARASFQHGX2MiGHyS3tDUsZ05e-VC2Grq6RoVAUF8yKo4ewDRm4oSE6Of_6aWDSEj0076",
+            ".youtube.com\tTRUE\t/\tTRUE\t1759052351\tLOGIN_INFO\tAFmmF2swRQIgHetDbRmjKUW2AetxqJ5tybna3_zHUCMs6d6JChdIIg8CIQC_gMJIQnVBr1azZUu9TaMEgGSNy1CVivND63vV--5pSQ:QUQ3MjNmd3NkLVFLeFYtMk0zc25WcEk5a3VZSHJuYUNnNjFXQzVlZWt1M2xlQkJOVVdicU5Fem04TXlEOWNFbXk0ZGg3S2hqaGg0Rk1EVWt0SXo2YXQ3TE5wQnh3RWUwMjdhXzk1SzhHRXNfVjRETGV5UF94anBGQnpJWm9SZkRUMEVGaF9uTUp1eUJKZFFzUHdPT3FYVXdHR194R3NJZElB",
+            ".youtube.com\tTRUE\t/\tTRUE\t1756599013\t__Secure-1PSIDTS\tsidts-CjEBUFGoh5Wld_LKwTbmn7A41wj5P-QzFjAfULQ-_inSFl1PrilMbyGfnn7XC8N3cE5XEAA",
+            ".youtube.com\tTRUE\t/\tTRUE\t1756599013\t__Secure-3PSIDTS\tsidts-CjEBUFGoh5Wld_LKwTbmn7A41wj5P-QzFjAfULQ-_inSFl1PrilMbyGfnn7XC8N3cE5XEAA"
+        ]
+
+        # Caminho para o diretório HOME do usuário
+        home_directory = os.path.expanduser('~')
+
+        # Caminho completo para o arquivo de cookies
+        cookie_file_path = os.path.join(home_directory, 'livebot', 'cookies.txt')
+
+        # Verifica se o diretório existe, caso contrário, cria-o
+        if not os.path.exists(os.path.dirname(cookie_file_path)):
+            os.makedirs(os.path.dirname(cookie_file_path))
+
+        # Cria ou atualiza o arquivo de cookies
+        create_or_update_youtube_cookie_file(cookie_file_path, cookies_data)
 
         ydl_opts = {
             'call_home': False,
@@ -713,6 +775,7 @@ class Generic(Plugin):
             'noprogress': True,
             'verbose': False,
             'quiet': True,
+            'cookiefile': cookie_file_path,
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
