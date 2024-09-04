@@ -7,8 +7,9 @@
 import base64
 import codecs
 import logging
-import os.path
 import time
+import os
+import os.path
 import re
 
 from html import unescape as html_unescape
@@ -702,6 +703,7 @@ class Generic(Plugin):
 
             def error(self, msg):
                 log.trace(msg)
+
         # Função para criar ou atualizar o arquivo de cookies no formato Netscape
         def create_or_update_youtube_cookie_file(cookie_file_path, cookies_data):
             # Define uma data de expiração muito distante no futuro (100 anos)
