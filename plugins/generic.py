@@ -778,7 +778,7 @@ class Generic(Plugin):
             'noprogress': True,
             'verbose': False,
             'quiet': True,
-            'cookiefile': cookie_file_path,
+            'cookies': cookie_file_path,
         }
 
         with youtube_dl.YoutubeDL(ydl_opts) as ydl:
