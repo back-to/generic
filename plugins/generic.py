@@ -38,7 +38,7 @@ except ImportError:
     except ImportError:
         HAS_YTDL = False
 
-GENERIC_VERSION = "2023-08-24"
+GENERIC_VERSION = "2024-10-27"
 
 log = logging.getLogger(__name__)
 
@@ -61,7 +61,7 @@ unpack_source_url_re_1 = re.compile(r'''(?x)source:\s*(?P<replace>window\.atob\(
 unpack_source_url_re_2 = re.compile(r'''(?x)var\s\w+url=(?P<replace>atob\(
     (?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\));''')
 unpack_source_url_re_3 = re.compile(r'''(?x)Clappr\.Player\(\s*{\s*
-    source:\s*(?P<replace>(?:window\.)atob\((?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\))''')
+    source:\s*(?P<replace>(?:window\.)?atob\((?P<q>["'])(?P<atob>[A-z0-9+/=]+)(?P=q)\))''')
 unpack_u_m3u8_re = re.compile(r'(\\u0022[^\s,]+m3u8[^\s,]*\\u0022)')
 
 
@@ -843,8 +843,18 @@ class Generic(Plugin):
         self.title = info['title']
 
         streams = []
+        audio_ext = []
+        video_ext = []
         for stream in info['formats']:
             if stream['protocol'] in ['m3u8', 'm3u8_native'] and stream['ext'] == 'mp4':
+                # skip m3u8 without audio / video
+                if (stream.get('audio_ext') and stream['audio_ext'] == 'none') \
+                        or (stream.get('video_ext') and stream['video_ext'] == "none"):
+                    if stream['audio_ext'] == 'mp4':
+                        audio_ext.append(stream)
+                    elif stream['video_ext'] == 'mp4':
+                        video_ext.append(stream)
+                    continue
                 log.trace('{0!r}'.format(stream))
                 name = stream.get('height') or stream.get('width')
                 if name:
